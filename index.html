@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hours Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;color:#111;min-height:100vh}
+.topbar{background:#1D4E4F;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-title{color:#fff;font-size:17px;font-weight:600}
+.topbar-tabs{display:flex;gap:6px}
+.tab{padding:6px 18px;border-radius:999px;font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:inherit}
+.tab-active{background:#FFE101;color:#1a1a1a}
+.tab-inactive{background:rgba(255,255,255,.15);color:rgba(255,255,255,.85)}
+.content{padding:20px 24px;max-width:1100px;margin:0 auto}
+.toolbar{background:#fff;border-radius:12px;border:.5px solid #e5e7eb;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.week-nav{display:flex;align-items:center;gap:8px}
+.nav-btn{width:28px;height:28px;border-radius:50%;border:.5px solid #d1d5db;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#6b7280}
+.nav-btn:hover{background:#f3f4f6}
+.week-label{font-size:13px;font-weight:500;color:#111;white-space:nowrap}
+.vdiv{width:1px;height:24px;background:#e5e7eb}
+.person-sel{font-size:13px;padding:6px 10px;border-radius:8px;border:.5px solid #d1d5db;color:#111;background:#fff;font-family:inherit;cursor:pointer}
+.btn{padding:7px 14px;border-radius:999px;font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{opacity:.85}
+.btn-yellow{background:#FFE101;color:#1a1a1a}
+.btn-dark{background:#1D4E4F;color:#fff}
+.btn-gray{background:#e5e7eb;color:#374151}
+.btn-red{background:#fecaca;color:#991b1b}
+.btn-green{background:#bbf7d0;color:#166534}
+.week-card{background:#fff;border-radius:12px;border:.5px solid #e5e7eb;padding:16px 20px;margin-bottom:14px}
+.week-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:.5px solid #f0f0f0}
+.week-title{font-size:15px;font-weight:600;color:#111;margin-bottom:4px}
+.hours-badge{display:inline-block;font-size:12px;font-weight:500;padding:3px 10px;border-radius:999px}
+.hours-green{background:#d1fae5;color:#065f46}
+.hours-yellow{background:#fef9c3;color:#854d0e}
+.hours-red{background:#fee2e2;color:#991b1b}
+.bulk-btns{display:flex;gap:4px}
+.bulk-btn{width:24px;height:24px;border-radius:6px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px}
+.proj-label{font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.proj-badge{background:#f3f4f6;color:#6b7280;font-size:11px;padding:2px 8px;border-radius:999px;text-transform:none;letter-spacing:0;font-weight:400}
+.tasks-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.task-card{border-radius:8px;border:.5px solid;padding:8px 10px;min-width:110px;max-width:180px}
+.task-pending{background:#f9fafb;border-color:#e5e7eb}
+.task-ok{background:#f0fdf4;border-color:#86efac}
+.task-nok{background:#fff1f2;border-color:#fca5a5}
+.task-stuck{background:#fffbeb;border-color:#fcd34d}
+.task-h{font-size:11px;font-weight:600;margin-bottom:3px}
+.task-pending .task-h{color:#6b7280}
+.task-ok .task-h{color:#15803d}
+.task-nok .task-h{color:#be123c}
+.task-stuck .task-h{color:#b45309}
+.task-name{font-size:12px;color:#374151;margin-bottom:6px;line-height:1.35}
+.task-actions{display:flex;gap:3px;align-items:center}
+.ta-btn{width:20px;height:20px;border-radius:5px;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.ta-ok{background:#bbf7d0;color:#166534}
+.ta-ok.active{background:#16a34a;color:#fff}
+.ta-nok{background:#fecaca;color:#991b1b}
+.ta-nok.active{background:#dc2626;color:#fff}
+.ta-stuck{background:#fde68a;color:#92400e}
+.ta-stuck.active{background:#d97706;color:#fff}
+.ta-del{background:#f3f4f6;color:#9ca3af;margin-left:auto}
+.ta-del:hover{background:#fee2e2;color:#dc2626}
+.empty-week{text-align:center;padding:24px;color:#9ca3af;font-size:13px}
+.dash-card{background:#fff;border-radius:12px;border:.5px solid #e5e7eb;padding:20px 24px;margin-bottom:16px}
+.dash-card h3{font-size:15px;font-weight:600;color:#111;margin-bottom:16px}
+.period-btns{display:flex;gap:6px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.period-btn{padding:5px 14px;border-radius:999px;font-size:12px;font-weight:500;border:.5px solid #d1d5db;background:#fff;cursor:pointer;font-family:inherit}
+.period-btn.active{background:#1D4E4F;color:#fff;border-color:#1D4E4F}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+@media(max-width:640px){.charts-grid{grid-template-columns:1fr}}
+.chart-wrap{background:#f9fafb;border-radius:8px;padding:16px}
+.chart-title{font-size:13px;font-weight:600;color:#374151;margin-bottom:12px}
+.chart-legend{margin-top:10px;display:flex;gap:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#6b7280}
+.legend-dot{width:10px;height:10px;border-radius:2px}
+.proj-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f9fafb;border-radius:8px;margin-bottom:6px;font-size:13px}
+table{width:100%;font-size:13px;border-collapse:collapse}
+th{background:#f3f4f6;padding:8px 12px;text-align:left;font-weight:600;color:#374151;font-size:12px}
+td{padding:8px 12px;border-bottom:.5px solid #f0f0f0;color:#374151}
+.badge-stuck{background:#fef9c3;color:#92400e;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px}
+.badge-resolved{background:#f3f4f6;color:#6b7280;font-size:11px;padding:2px 8px;border-radius:999px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;position:relative}
+.modal h2{font-size:18px;font-weight:600;margin-bottom:18px;color:#111}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:8px 10px;border-radius:8px;border:.5px solid #d1d5db;font-size:13px;font-family:inherit;outline:none;background:#fff;color:#111}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#1D4E4F;box-shadow:0 0 0 2px rgba(29,78,79,.12)}
+.field textarea{min-height:80px;resize:vertical}
+.modal-footer{display:flex;gap:8px;margin-top:18px;justify-content:flex-end}
+.close-x{position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af;line-height:1}
+.manage-list{max-height:180px;overflow-y:auto;border:.5px solid #e5e7eb;border-radius:8px;margin-bottom:12px}
+.manage-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;font-size:13px;border-bottom:.5px solid #f0f0f0}
+.manage-item:last-child{border-bottom:none}
+.toast{position:fixed;bottom:24px;right:24px;background:#1D4E4F;color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;z-index:300;pointer-events:none}
+.toast.show{opacity:1}
+#loading{position:fixed;inset:0;background:#f3f4f6;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;font-size:14px;color:#6b7280;gap:12px}
+.spinner{width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:#1D4E4F;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><div>A carregar...</div></div>
+
+<div class="topbar">
+  <div class="topbar-title">2026 P&O Week Planner</div>
+  <div class="topbar-tabs">
+    <button class="tab tab-active" onclick="setTab('planner')">Planner</button>
+    <button class="tab tab-inactive" onclick="setTab('dashboard')">Dashboard</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="view-planner" class="content">
+  <div class="toolbar">
+    <div class="week-nav">
+      <button class="nav-btn" onclick="shiftWeek(-1)">‹</button>
+      <span class="week-label" id="week-label">—</span>
+      <button class="nav-btn" onclick="shiftWeek(1)">›</button>
+    </div>
+    <div class="vdiv"></div>
+    <select class="person-sel" id="person-sel" onchange="render()"></select>
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-dark" onclick="openManage('person')">+ Pessoa</button>
+      <button class="btn btn-dark" onclick="openManage('project')">+ Projeto</button>
+      <button class="btn btn-yellow" onclick="openNewEntry()">+ Nova entrada</button>
+    </div>
+  </div>
+  <div id="planner-body"></div>
+</div>
+
+<div id="view-dashboard" class="content" style="display:none">
+  <div class="dash-card">
+    <div class="period-btns">
+      <span style="font-size:13px;font-weight:500;color:#374151;margin-right:4px">Período:</span>
+      <button class="period-btn active" onclick="setPeriod('week',this)">Semana</button>
+      <button class="period-btn" onclick="setPeriod('month',this)">Mês</button>
+      <button class="period-btn" onclick="setPeriod('year',this)">Ano</button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+        <button class="nav-btn" onclick="shiftDash(-1)">‹</button>
+        <span id="dash-period-label" style="font-size:13px;font-weight:500;color:#111;white-space:nowrap"></span>
+        <button class="nav-btn" onclick="shiftDash(1)">›</button>
+      </div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-wrap">
+        <div class="chart-title">Horas reportadas</div>
+        <svg id="chart-hours" viewBox="0 0 300 200" style="width:100%;height:auto"></svg>
+        <div class="chart-legend" id="legend-hours"></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">OK Rate</div>
+        <svg id="chart-ok" viewBox="0 0 300 200" style="width:100%;height:auto"></svg>
+        <div class="chart-legend" id="legend-ok"></div>
+      </div>
+    </div>
+    <h3>Horas por projeto</h3>
+    <div id="dash-projects"></div>
+  </div>
+  <div class="dash-card">
+    <h3>Stucks</h3>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:14px;cursor:pointer">
+      <input type="checkbox" id="show-resolved" onchange="renderDash()"> Mostrar resolvidos
+    </label>
+    <div style="overflow-x:auto">
+      <table><thead><tr><th>Status</th><th>Pessoa</th><th>Projeto</th><th>Semana</th><th>Razão</th><th>Ação</th></tr></thead>
+      <tbody id="stucks-body"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- New Entry Modal -->
+<div class="modal-overlay" id="modal-entry">
+  <div class="modal">
+    <button class="close-x" onclick="closeModal('modal-entry')">×</button>
+    <h2>Nova entrada</h2>
+    <div class="field"><label>Pessoa</label><select id="f-person"></select></div>
+    <div class="field"><label>Projeto</label><select id="f-project"></select></div>
+    <div class="field"><label>Semana (segunda-feira)</label><input type="date" id="f-week"></div>
+    <div class="field"><label>Horas totais</label><input type="number" step="0.5" min="0" id="f-hours" placeholder="ex: 8"></div>
+    <div class="field"><label>Tarefas (uma por linha)</label><textarea id="f-desc" placeholder="Tarefa A&#10;Tarefa B&#10;Tarefa C"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="closeModal('modal-entry')">Cancelar</button>
+      <button class="btn btn-dark" onclick="saveEntry(false)">Guardar e adicionar</button>
+      <button class="btn btn-yellow" onclick="saveEntry(true)">Guardar e fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stuck reason Modal -->
+<div class="modal-overlay" id="modal-stuck">
+  <div class="modal" style="max-width:380px">
+    <button class="close-x" onclick="closeModal('modal-stuck')">×</button>
+    <h2>Porquê está stuck?</h2>
+    <div class="field"><label>Razão</label><textarea id="stuck-reason" placeholder="Descreve o bloqueio..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="closeModal('modal-stuck')">Cancelar</button>
+      <button class="btn btn-yellow" onclick="confirmStuck()">Marcar stuck</button>
+    </div>
+  </div>
+</div>
+
+<!-- Resolve Modal -->
+<div class="modal-overlay" id="modal-resolve">
+  <div class="modal" style="max-width:340px">
+    <button class="close-x" onclick="closeModal('modal-resolve')">×</button>
+    <h2>Resolver stuck?</h2>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:18px">Esta tarefa vai ser marcada como OK.</p>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="closeModal('modal-resolve')">Cancelar</button>
+      <button class="btn btn-green" onclick="confirmResolve()">Resolver</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manage Modal -->
+<div class="modal-overlay" id="modal-manage">
+  <div class="modal" style="max-width:360px">
+    <button class="close-x" onclick="closeModal('modal-manage')">×</button>
+    <h2 id="manage-title">Gerir</h2>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input type="text" id="manage-input" style="flex:1;padding:7px 10px;border-radius:8px;border:.5px solid #d1d5db;font-size:13px;font-family:inherit">
+      <button class="btn btn-dark" onclick="addManageItem()">Adicionar</button>
+    </div>
+    <div class="manage-list" id="manage-list"></div>
+    <div class="modal-footer"><button class="btn btn-gray" onclick="closeModal('modal-manage')">Fechar</button></div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal" style="max-width:320px">
+    <button class="close-x" onclick="closeModal('modal-delete')">×</button>
+    <h2>Confirmar eliminação</h2>
+    <p id="delete-msg" style="font-size:13px;color:#6b7280;margin-bottom:18px"></p>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="closeModal('modal-delete')">Cancelar</button>
+      <button class="btn btn-red" onclick="confirmDelete()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://fugydgbujpldycpodhac.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1Z3lkZ2J1anBsZHljcG9kaGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MTc0NjcsImV4cCI6MjA5NzE5MzQ2N30.53ef93SQ55a0vW46_qx-SIcdy7x4e9cVCZ0kCiz7Br4';
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── STATE ──────────────────────────────────────────────────
+let records = [], people = [], projects = [];
+let selectedWeek = getMonday(new Date());
+let activeTab = 'planner';
+let dashPeriod = 'week';
+let dashWeek = getMonday(new Date());
+let dashMonth = new Date().toISOString().slice(0,7);
+let dashYear = new Date().getFullYear();
+let pendingStuck = null, pendingResolve = null, pendingDelete = null, manageType = null;
+
+// ── INIT ───────────────────────────────────────────────────
+async function init() {
+  await Promise.all([loadLookups(), loadRecords()]);
+  populatePersonSel();
+  document.getElementById('f-week').value = fmtDate(getMonday(new Date()));
+  render();
+  renderDash();
+  document.getElementById('loading').style.display = 'none';
+}
+
+async function loadLookups() {
+  const { data } = await sb.from('lookups').select('*').order('id');
+  people   = data.filter(r => r.type === 'person').map(r => r.name);
+  projects = data.filter(r => r.type === 'project').map(r => r.name);
+}
+
+async function loadRecords() {
+  const { data } = await sb.from('records').select('*').order('created_at');
+  records = data.map(r => ({
+    id: r.id, person: r.person, project: r.project,
+    week: r.week, hours: parseFloat(r.hours),
+    tasks: r.tasks || [], taskStatus: r.task_status || [], taskReasons: r.task_reasons || []
+  }));
+}
+
+// ── HELPERS ────────────────────────────────────────────────
+function getMonday(d) {
+  const dt = new Date(d); const day = dt.getDay();
+  dt.setDate(dt.getDate() - (day === 0 ? 6 : day - 1)); dt.setHours(0,0,0,0); return dt;
+}
+function fmtDate(d) { return d.toISOString().split('T')[0]; }
+function weekNum(d) {
+  const dt = new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const dn = dt.getUTCDay()||7; dt.setUTCDate(dt.getUTCDate()+4-dn);
+  const ys = new Date(Date.UTC(dt.getUTCFullYear(),0,1));
+  return Math.ceil((((dt-ys)/86400000)+1)/7);
+}
+function weekLabel(d) {
+  const mon = getMonday(d); const fri = new Date(mon); fri.setDate(fri.getDate()+4);
+  const fmt = dt => dt.toLocaleDateString('pt-PT',{day:'2-digit',month:'short'});
+  return `W${weekNum(mon)} [${fmt(mon)} – ${fmt(fri)}]`;
+}
+function showToast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500);
+}
+function setLoading(on) { document.getElementById('loading').style.display = on?'flex':'none'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function populatePersonSel() {
+  const sel = document.getElementById('person-sel'); const cur = sel.value;
+  sel.innerHTML = people.map(p=>`<option value="${p}">${p}</option>`).join('');
+  if (cur && people.includes(cur)) sel.value = cur;
+}
+
+// ── TABS ───────────────────────────────────────────────────
+window.setTab = t => {
+  activeTab = t;
+  document.getElementById('view-planner').style.display   = t==='planner'   ?'':'none';
+  document.getElementById('view-dashboard').style.display = t==='dashboard' ?'':'none';
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.className='tab '+(['planner','dashboard'][i]===t?'tab-active':'tab-inactive');
+  });
+  if (t==='dashboard') renderDash();
+};
+
+// ── PLANNER ────────────────────────────────────────────────
+window.shiftWeek = n => { selectedWeek=new Date(selectedWeek.getTime()+n*7*86400000); render(); };
+function render() {
+  const person = document.getElementById('person-sel').value;
+  document.getElementById('week-label').textContent = weekLabel(selectedWeek);
+  let html = '';
+  for (let w=0;w<2;w++) {
+    const wDate = new Date(selectedWeek.getTime()-(1-w)*7*86400000);
+    const wStr  = fmtDate(getMonday(wDate));
+    const recs  = records.filter(r=>r.person===person&&r.week===wStr);
+    const total = recs.reduce((s,r)=>s+r.hours,0);
+    const pct   = (total/40*100).toFixed(1);
+    const hCls  = total>=39?'hours-green':total>=35?'hours-yellow':'hours-red';
+    const over  = total>40?`<span style="color:#dc2626;font-size:11px;margin-left:6px">(+${(total-40).toFixed(1)}h)</span>`:'';
+    html += `<div class="week-card"><div class="week-header"><div>
+      <div class="week-title">${weekLabel(wDate)}</div>
+      <span class="hours-badge ${hCls}">${total.toFixed(1)}h (${pct}%)</span>${over}
+      </div><div class="bulk-btns">
+      <button class="bulk-btn" style="background:#d1fae5;color:#065f46" onclick="bulk('${person}','${wStr}','ok')">✓</button>
+      <button class="bulk-btn" style="background:#fee2e2;color:#991b1b" onclick="bulk('${person}','${wStr}','nok')">✗</button>
+      <button class="bulk-btn" style="background:#fef9c3;color:#92400e" onclick="bulk('${person}','${wStr}','stuck')">!</button>
+      </div></div>`;
+    if (!recs.length) { html+=`<div class="empty-week">Sem entradas para esta semana</div>`; }
+    else {
+      const byProj={};
+      recs.forEach(r=>{if(!byProj[r.project])byProj[r.project]=[];byProj[r.project].push(r);});
+      Object.entries(byProj).forEach(([proj,pRecs])=>{
+        const ph=pRecs.reduce((s,r)=>s+r.hours,0);
+        html+=`<div class="proj-label">${proj}<span class="proj-badge">${ph.toFixed(1)}h</span></div><div class="tasks-grid">`;
+        pRecs.forEach(rec=>{
+          rec.tasks.forEach((task,ti)=>{
+            const st=rec.taskStatus[ti]||'pending';
+            const hpt=rec.tasks.length?(rec.hours/rec.tasks.length).toFixed(1):rec.hours;
+            html+=`<div class="task-card task-${st}">
+              <div class="task-h">${hpt}h</div>
+              <div class="task-name">${esc(task)}</div>
+              <div class="task-actions">
+                <button class="ta-btn ta-ok${st==='ok'?' active':''}"    onclick="setStatus(${rec.id},${ti},'ok')">✓</button>
+                <button class="ta-btn ta-nok${st==='nok'?' active':''}"  onclick="setStatus(${rec.id},${ti},'nok')">✗</button>
+                <button class="ta-btn ta-stuck${st==='stuck'?' active':''}" onclick="setStatus(${rec.id},${ti},'stuck')">!</button>
+                <button class="ta-btn ta-del" onclick="askDeleteTask(${rec.id},${ti})">🗑</button>
+              </div></div>`;
+          });
+        });
+        html+=`</div>`;
+      });
+    }
+    html+=`</div>`;
+  }
+  document.getElementById('planner-body').innerHTML=html;
+}
+
+window.setStatus = async (id,ti,status) => {
+  if (status==='stuck'){pendingStuck={id,ti};document.getElementById('stuck-reason').value='';openModal('modal-stuck');return;}
+  const rec = records.find(r=>r.id===id); if(!rec) return;
+  const ts=[...rec.taskStatus]; ts[ti]=status;
+  const tr=[...rec.taskReasons]; tr[ti]='';
+  setLoading(true);
+  await sb.from('records').update({task_status:ts,task_reasons:tr}).eq('id',id);
+  await loadRecords(); setLoading(false); render(); if(activeTab==='dashboard') renderDash(); showToast('Estado atualizado');
+};
+window.confirmStuck = async () => {
+  const reason=document.getElementById('stuck-reason').value.trim();
+  const {id,ti}=pendingStuck; closeModal('modal-stuck');
+  const rec=records.find(r=>r.id===id); if(!rec) return;
+  const ts=[...rec.taskStatus]; ts[ti]='stuck';
+  const tr=[...rec.taskReasons]; tr[ti]=reason;
+  setLoading(true);
+  await sb.from('records').update({task_status:ts,task_reasons:tr}).eq('id',id);
+  await loadRecords(); setLoading(false); render(); if(activeTab==='dashboard') renderDash(); showToast('Marcado como stuck');
+};
+window.askDeleteTask = (id,ti) => {
+  pendingDelete={type:'task',id,ti};
+  document.getElementById('delete-msg').textContent='Tens a certeza que queres eliminar esta tarefa?';
+  openModal('modal-delete');
+};
+window.confirmDelete = async () => {
+  closeModal('modal-delete'); const d=pendingDelete;
+  if (d.type==='task') {
+    const rec=records.find(r=>r.id===d.id); if(!rec) return;
+    const tasks=[...rec.tasks]; tasks.splice(d.ti,1);
+    const ts=[...rec.taskStatus]; ts.splice(d.ti,1);
+    const tr=[...rec.taskReasons]; tr.splice(d.ti,1);
+    setLoading(true);
+    if (!tasks.length) await sb.from('records').delete().eq('id',d.id);
+    else await sb.from('records').update({tasks,task_status:ts,task_reasons:tr}).eq('id',d.id);
+    await loadRecords(); setLoading(false); render(); showToast('Tarefa eliminada');
+  } else if (d.type==='person') {
+    await sb.from('lookups').delete().eq('type','person').eq('name',d.name);
+    await loadLookups(); populatePersonSel(); renderManageList(); showToast('Eliminado');
+  } else if (d.type==='project') {
+    await sb.from('lookups').delete().eq('type','project').eq('name',d.name);
+    await loadLookups(); renderManageList(); showToast('Eliminado');
+  }
+};
+window.bulk = async (person,week,status) => {
+  setLoading(true);
+  const recs=records.filter(r=>r.person===person&&r.week===week);
+  await Promise.all(recs.map(r=>sb.from('records').update({task_status:r.tasks.map(()=>status),task_reasons:r.tasks.map(()=>'')}).eq('id',r.id)));
+  await loadRecords(); setLoading(false); render(); showToast('Estado atualizado em bloco');
+};
+
+// ── NEW ENTRY ──────────────────────────────────────────────
+window.openNewEntry = () => {
+  const fp=document.getElementById('f-person'), fpr=document.getElementById('f-project');
+  fp.innerHTML=people.map(p=>`<option>${p}</option>`).join('');
+  fpr.innerHTML=projects.map(p=>`<option>${p}</option>`).join('');
+  const cur=document.getElementById('person-sel').value; if(cur) fp.value=cur;
+  openModal('modal-entry');
+};
+window.saveEntry = async (close) => {
+  const person=document.getElementById('f-person').value;
+  const project=document.getElementById('f-project').value;
+  const week=document.getElementById('f-week').value;
+  const hours=parseFloat(document.getElementById('f-hours').value);
+  const desc=document.getElementById('f-desc').value.trim();
+  if (!person||!project||!week||!hours||!desc){alert('Preenche todos os campos.');return;}
+  const tasks=desc.split('\n').map(t=>t.trim()).filter(t=>t);
+  setLoading(true);
+  await sb.from('records').insert({person,project,week,hours,tasks,task_status:tasks.map(()=>'pending'),task_reasons:tasks.map(()=>'')});
+  await loadRecords(); setLoading(false);
+  if(close){closeModal('modal-entry');}
+  document.getElementById('f-hours').value=''; document.getElementById('f-desc').value='';
+  render(); showToast('Entrada guardada!');
+};
+
+// ── MANAGE ─────────────────────────────────────────────────
+window.openManage = type => {
+  manageType=type;
+  document.getElementById('manage-title').textContent=type==='person'?'Gerir pessoas':'Gerir projetos';
+  document.getElementById('manage-input').placeholder=type==='person'?'Nome da pessoa':'Nome do projeto';
+  document.getElementById('manage-input').value='';
+  renderManageList(); openModal('modal-manage');
+};
+function renderManageList() {
+  const list=manageType==='person'?people:projects;
+  document.getElementById('manage-list').innerHTML=list.map(n=>
+    `<div class="manage-item"><span>${esc(n)}</span><button class="btn btn-red" style="padding:3px 10px;font-size:11px" onclick="askDeleteManage('${esc(n)}')">Eliminar</button></div>`
+  ).join('')||'<div style="padding:12px;font-size:13px;color:#9ca3af">Nenhum item</div>';
+}
+window.addManageItem = async () => {
+  const val=document.getElementById('manage-input').value.trim(); if(!val) return;
+  await sb.from('lookups').insert({type:manageType,name:val});
+  await loadLookups(); populatePersonSel(); renderManageList();
+  document.getElementById('manage-input').value='';
+  showToast(manageType==='person'?'Pessoa adicionada':'Projeto adicionado');
+};
+window.askDeleteManage = name => {
+  pendingDelete={type:manageType,name};
+  document.getElementById('delete-msg').textContent=`Eliminar "${name}"?`;
+  openModal('modal-delete');
+};
+
+// ── DASHBOARD ──────────────────────────────────────────────
+window.setPeriod = (p,btn) => {
+  dashPeriod=p;
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); renderDash();
+};
+window.shiftDash = n => {
+  if(dashPeriod==='week') dashWeek=new Date(dashWeek.getTime()+n*7*86400000);
+  if(dashPeriod==='month'){let[y,m]=dashMonth.split('-').map(Number);m+=n;if(m>12){m=1;y++;}if(m<1){m=12;y--;}dashMonth=`${y}-${String(m).padStart(2,'0')}`;}
+  renderDash();
+};
+function getDashRecs() {
+  if(dashPeriod==='week')  return records.filter(r=>r.week===fmtDate(getMonday(dashWeek)));
+  if(dashPeriod==='month') return records.filter(r=>r.week.startsWith(dashMonth));
+  return records.filter(r=>r.week.startsWith(String(dashYear)));
+}
+function getChartPeriods() {
+  if(dashPeriod==='week'){
+    const wks=[...new Set(records.map(r=>r.week))].sort();
+    return wks.map(w=>{const rs=records.filter(r=>r.week===w);const ts=rs.flatMap(r=>r.taskStatus);return{label:`W${weekNum(new Date(w))}`,hours:rs.reduce((s,r)=>s+r.hours,0),ok:ts.length?ts.filter(s=>s==='ok').length/ts.length*100:0};});
+  }
+  if(dashPeriod==='month'){
+    const mns=[...new Set(records.map(r=>r.week.slice(0,7)))].sort();
+    const MN=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    return mns.map(m=>{const rs=records.filter(r=>r.week.startsWith(m));const ts=rs.flatMap(r=>r.taskStatus);return{label:MN[parseInt(m.split('-')[1])-1],hours:rs.reduce((s,r)=>s+r.hours,0),ok:ts.length?ts.filter(s=>s==='ok').length/ts.length*100:0};});
+  }
+  const rs=records.filter(r=>r.week.startsWith(String(dashYear)));
+  const ts=rs.flatMap(r=>r.taskStatus);
+  return [{label:String(dashYear),hours:rs.reduce((s,r)=>s+r.hours,0),ok:ts.length?ts.filter(s=>s==='ok').length/ts.length*100:0}];
+}
+window.renderDash = () => {
+  const labels={week:`Semana de ${fmtDate(getMonday(dashWeek))}`,month:dashMonth,year:String(dashYear)};
+  document.getElementById('dash-period-label').textContent=labels[dashPeriod];
+  const periods=getChartPeriods(), nP=people.length;
+  drawChart('chart-hours',periods,'hours',v=>`${Math.round(v)}h`,Math.max(...periods.map(p=>p.hours),40*nP),[{val:35*nP,col:'#ef4444'},{val:39*nP,col:'#eab308'}],v=>v>=39*nP?'#22c55e':v>=35*nP?'#eab308':'#ef4444');
+  document.getElementById('legend-hours').innerHTML=`<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>< ${35*nP}h</div><div class="legend-item"><div class="legend-dot" style="background:#eab308"></div>${35*nP}–${39*nP}h</div><div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>≥ ${39*nP}h</div>`;
+  drawChart('chart-ok',periods,'ok',v=>`${Math.round(v)}%`,100,[{val:80,col:'#eab308'},{val:90,col:'#22c55e'}],v=>v>=90?'#22c55e':v>=80?'#eab308':'#ef4444');
+  document.getElementById('legend-ok').innerHTML=`<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>< 80%</div><div class="legend-item"><div class="legend-dot" style="background:#eab308"></div>80–90%</div><div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>≥ 90%</div>`;
+  const recs=getDashRecs(), ph={}, bd={};
+  recs.forEach(r=>{ph[r.project]=(ph[r.project]||0)+r.hours;bd[r.project]=(bd[r.project]||[]);bd[r.project].push(`${r.person}: ${r.hours}h`);});
+  document.getElementById('dash-projects').innerHTML=Object.entries(ph).sort((a,b)=>b[1]-a[1]).map(([p,h])=>`<div class="proj-row"><span>${esc(p)}</span><strong>${h.toFixed(1)}h</strong></div>`).join('')||'<p style="font-size:13px;color:#9ca3af">Sem dados</p>';
+  const showRes=document.getElementById('show-resolved').checked;
+  const stucks=records.flatMap(r=>(r.taskStatus||[]).map((st,ti)=>({id:r.id,ti,st,person:r.person,project:r.project,week:r.week,reason:r.taskReasons[ti]||''}))).filter(s=>s.st==='stuck'||(showRes&&s.st==='ok'&&s.reason));
+  document.getElementById('stucks-body').innerHTML=stucks.length===0?`<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:16px">Sem stucks</td></tr>`:stucks.map(s=>`<tr><td>${s.st==='stuck'?'<span class="badge-stuck">STUCK</span>':'<span class="badge-resolved">Resolvido</span>'}</td><td>${esc(s.person)}</td><td style="font-size:12px">${esc(s.project)}</td><td style="font-size:12px">W${weekNum(new Date(s.week))}</td><td style="font-size:12px;max-width:180px">${esc(s.reason)}</td><td>${s.st==='stuck'?`<button class="btn btn-green" style="padding:4px 10px;font-size:11px" onclick="askResolve(${s.id},${s.ti})">Resolver</button>`:'–'}</td></tr>`).join('');
+};
+window.askResolve = (id,ti) => { pendingResolve={id,ti}; openModal('modal-resolve'); };
+window.confirmResolve = async () => {
+  closeModal('modal-resolve'); const{id,ti}=pendingResolve;
+  const rec=records.find(r=>r.id===id); if(!rec) return;
+  const ts=[...rec.taskStatus]; ts[ti]='ok';
+  const tr=[...rec.taskReasons]; tr[ti]='';
+  setLoading(true);
+  await sb.from('records').update({task_status:ts,task_reasons:tr}).eq('id',id);
+  await loadRecords(); setLoading(false); renderDash(); showToast('Stuck resolvido');
+};
+
+// ── SVG CHART ──────────────────────────────────────────────
+function drawChart(svgId,periods,key,fmt,maxVal,thresholds,colorFn){
+  const svg=document.getElementById(svgId);
+  const W=300,H=200,pL=42,pR=10,pT=16,pB=36,iW=W-pL-pR,iH=H-pT-pB;
+  const steps=5,sv=Math.ceil(maxVal/steps)||1,aMax=sv*steps||1;
+  const yPx=v=>pT+iH-(v/aMax)*iH;
+  const slW=periods.length>0?iW/periods.length:iW, bW=Math.min(slW*.55,36);
+  let out='';
+  for(let i=0;i<=steps;i++){const v=sv*i,y=yPx(v);out+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="#e5e7eb" stroke-width="1"/><text x="${pL-5}" y="${y+4}" font-size="9" fill="#9ca3af" text-anchor="end">${fmt(v)}</text>`;}
+  thresholds.forEach(t=>{const y=yPx(t.val);out+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="${t.col}" stroke-width="1.5" stroke-dasharray="5,3"/>`;});
+  out+=`<line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT+iH}" stroke="#d1d5db" stroke-width="1"/><line x1="${pL}" y1="${pT+iH}" x2="${W-pR}" y2="${pT+iH}" stroke="#d1d5db" stroke-width="1"/>`;
+  periods.forEach((p,i)=>{const v=p[key],bX=pL+slW*i+(slW-bW)/2,bY=yPx(v),bH=Math.max((pT+iH)-bY,0),fill=colorFn(v);out+=`<rect x="${bX}" y="${bY}" width="${bW}" height="${bH}" fill="${fill}" rx="3"/>`;const lbl=fmt(v);if(bH>18)out+=`<text x="${bX+bW/2}" y="${bY+13}" font-size="9" fill="#fff" font-weight="600" text-anchor="middle">${lbl}</text>`;else out+=`<text x="${bX+bW/2}" y="${bY-4}" font-size="9" fill="#374151" font-weight="600" text-anchor="middle">${lbl}</text>`;out+=`<text x="${bX+bW/2}" y="${pT+iH+14}" font-size="9" fill="#6b7280" text-anchor="middle">${p.label}</text>`;});
+  svg.innerHTML=out;
+}
+
+window.closeModal = closeModal;
+init();
+</script>
+</body>
+</html>
