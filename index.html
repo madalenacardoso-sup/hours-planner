@@ -505,6 +505,8 @@ window.saveEntry = async (close) => {
   if (!person || !project || !weekRaw || !hours || !desc) { alert('Preenche todos os campos.'); return; }
   // always store the monday of the selected week
   const week = fmtDate(mondayOf(parseLocalDate(weekRaw)));
+  // validate: must be a monday (or close enough after correction)
+
   const tasks = desc.split('\n').map(t => t.trim()).filter(t => t);
   setLoading(true);
   await sb.from('records').insert({ person, project, week, hours, tasks, task_status: tasks.map(() => 'pending'), task_reasons: tasks.map(() => '') });
@@ -593,7 +595,7 @@ window.renderDash = () => {
   recs.forEach(r => { ph[r.project]=(ph[r.project]||0)+r.hours; (bd[r.project]=bd[r.project]||[]).push(`${r.person}: ${r.hours}h`); });
   document.getElementById('dash-projects').innerHTML = Object.entries(ph).sort((a,b)=>b[1]-a[1]).map(([p,h]) => `<div class="proj-row"><span>${esc(p)}</span><strong>${h.toFixed(1)}h</strong></div>`).join('') || '<p style="font-size:13px;color:#9ca3af">Sem dados</p>';
   const showRes = document.getElementById('show-resolved').checked;
-  const stucks = records.flatMap(r => (r.taskStatus||[]).map((st,ti) => ({ id:r.id, ti, st, person:r.person, project:r.project, week:r.week, reason:r.taskReasons[ti]||'' }))).filter(s => s.st==='stuck'||(showRes&&s.st==='ok'&&s.reason));
+  const stucks = records.flatMap(r => (r.taskStatus||[]).map((st,ti) => ({ id:r.id, ti, st, person:r.person, project:r.project, week:r.week, reason:r.taskReasons[ti]||'' }))).filter(s => s.st==='stuck' || (showRes && s.reason));
   document.getElementById('stucks-body').innerHTML = stucks.length === 0
     ? `<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:16px">Sem stucks</td></tr>`
     : stucks.map(s => `<tr><td>${s.st==='stuck'?'<span class="badge-stuck">STUCK</span>':'<span class="badge-resolved">Resolvido</span>'}</td><td>${esc(s.person)}</td><td style="font-size:12px">${esc(s.project)}</td><td style="font-size:12px">W${weekNum(parseLocalDate(s.week))}</td><td style="font-size:12px;max-width:180px">${esc(s.reason)}</td><td>${s.st==='stuck'?`<button class="btn btn-green" style="padding:4px 10px;font-size:11px" onclick="askResolve(${s.id},${s.ti})">Resolver</button>`:'–'}</td></tr>`).join('');
