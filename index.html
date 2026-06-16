@@ -124,7 +124,7 @@ td{padding:8px 12px;border-bottom:.5px solid #f0f0f0;color:#374151}
       <button class="nav-btn" onclick="shiftWeek(1)">›</button>
     </div>
     <div class="vdiv"></div>
-    <select class="person-sel" id="person-sel" onchange="render()"></select>
+    <select class="person-sel" id="person-sel" onchange="onPersonChange()"></select>
     <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-dark" onclick="openManage('person')">+ Pessoa</button>
       <button class="btn btn-dark" onclick="openManage('project')">+ Projeto</button>
@@ -289,11 +289,17 @@ async function loadRecords() {
 
 // ── HELPERS ────────────────────────────────────────────────
 function getMonday(d) {
-  const dt = new Date(d); const day = dt.getDay();
-  dt.setDate(dt.getDate() - (day === 0 ? 6 : day - 1)); dt.setHours(0,0,0,0); return dt;
+  const dt = new Date(d);
+  const day = dt.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  dt.setDate(dt.getDate() + diff);
+  dt.setHours(12, 0, 0, 0); // meio-dia evita problemas de DST
+  return dt;
 }
 function fmtDate(d) {
-  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${dd}`;
 }
 function weekNum(d) {
@@ -334,6 +340,7 @@ window.setTab = t => {
 
 // ── PLANNER ────────────────────────────────────────────────
 window.shiftWeek = n => { selectedWeek=new Date(selectedWeek.getTime()+n*7*86400000); render(); };
+window.onPersonChange = () => { render(); };
 function render() {
   const person = document.getElementById('person-sel').value;
   document.getElementById('week-label').textContent = weekLabel(selectedWeek);
