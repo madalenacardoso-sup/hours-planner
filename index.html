@@ -280,6 +280,23 @@ td{padding:8px 12px;border-bottom:.5px solid #f0f0f0;color:#374151}
   </div>
 </div>
 
+<div id="auth-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;display:flex;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px 28px;width:100%;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="width:48px;height:48px;background:#1D4E4F;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px">🔒</div>
+      <div style="font-size:17px;font-weight:600;color:#111">2026 P&O Week Planner</div>
+      <div style="font-size:13px;color:#6b7280;margin-top:4px">Introduz a password para continuar</div>
+    </div>
+    <div style="margin-bottom:14px">
+      <input type="password" id="auth-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkAuth()"
+        style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid #d1d5db;font-size:14px;font-family:inherit;outline:none;transition:border .15s"
+        onfocus="this.style.borderColor='#1D4E4F'" onblur="this.style.borderColor='#d1d5db'">
+      <div id="auth-error" style="display:none;color:#dc2626;font-size:12px;margin-top:6px">Password incorreta. Tenta novamente.</div>
+    </div>
+    <button onclick="checkAuth()" style="width:100%;padding:10px;border-radius:8px;background:#1D4E4F;color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:inherit">Entrar</button>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -872,8 +889,20 @@ window.confirmResolve = async () => {
   await loadRecords(); setLoading(false); renderDash(); showToast('Stuck resolvido');
 };
 
-window.closeModal = closeModal;
-init();
+window.checkAuth = function() {
+  const val = document.getElementById('auth-input').value;
+  if (val === 'OpsÉTops') {
+    document.getElementById('auth-overlay').style.display = 'none';
+    init();
+  } else {
+    document.getElementById('auth-error').style.display = 'block';
+    document.getElementById('auth-input').value = '';
+    document.getElementById('auth-input').focus();
+  }
+};
+// Focus input on load
+document.getElementById('auth-input').focus();
+
 </script>
 </body>
 </html>
