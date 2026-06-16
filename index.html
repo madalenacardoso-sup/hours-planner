@@ -87,24 +87,21 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;color:#111;mi
 .pb-avatar-init{width:20px;height:20px;border-radius:50%;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#065f46}
 .proj-row-info{font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px}
 
-/* People ranking */
-.ranking-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:8px}
-.rank-card{background:#f9fafb;border-radius:10px;border:.5px solid #e5e7eb;padding:12px 14px;display:flex;align-items:center;gap:10px;position:relative;overflow:hidden}
-.rank-card.rank-1{background:#fffbeb;border-color:#fcd34d}
-.rank-card.rank-2{background:#f8fafc;border-color:#e2e8f0}
-.rank-card.rank-3{background:#fef6ee;border-color:#fed7aa}
-.rank-num{font-size:11px;font-weight:600;color:#9ca3af;position:absolute;top:8px;right:10px}
-.rank-1 .rank-num{color:#d97706}
-.rank-2 .rank-num{color:#64748b}
-.rank-3 .rank-num{color:#ea580c}
-.rank-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;flex-shrink:0}
-.rank-avatar-init{width:40px;height:40px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#6b7280;flex-shrink:0}
-.rank-info{min-width:0}
-.rank-name{font-size:13px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rank-hours{font-size:12px;color:#6b7280}
-.rank-bar-wrap{margin-top:4px;height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden}
-.rank-bar{height:4px;border-radius:2px;background:#1D4E4F;transition:width .4s}
-.rank-ok{font-size:11px;color:#16a34a;font-weight:500}
+/* Podium top 3 */
+.podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:12px;padding:8px 0 16px}
+.podium-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.podium-avatar{border-radius:50%;object-fit:cover;border:3px solid #e5e7eb;display:block}
+.podium-avatar-init{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;color:#6b7280;border:3px solid #e5e7eb;flex-shrink:0}
+.podium-name{font-size:13px;font-weight:600;color:#111;text-align:center;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.podium-hours{font-size:12px;color:#6b7280;text-align:center}
+.podium-ok{font-size:11px;font-weight:600;color:#16a34a;text-align:center}
+.podium-block{border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;width:80px}
+.podium-1 .podium-avatar,.podium-1 .podium-avatar-init{border-color:#FBBF24;width:72px;height:72px;font-size:24px}
+.podium-2 .podium-avatar,.podium-2 .podium-avatar-init{border-color:#94A3B8;width:60px;height:60px;font-size:20px}
+.podium-3 .podium-avatar,.podium-3 .podium-avatar-init{border-color:#FB923C;width:54px;height:54px;font-size:18px}
+.podium-block-1{background:#FEF9C3;color:#D97706;height:80px}
+.podium-block-2{background:#F1F5F9;color:#64748B;height:60px}
+.podium-block-3{background:#FFF7ED;color:#C2410C;height:44px}
 
 /* Chart tooltip */
 .chart-tooltip{position:absolute;background:#1a1a1a;color:#fff;font-size:11px;padding:8px 10px;border-radius:8px;pointer-events:none;display:none;z-index:20;max-width:200px;line-height:1.6;white-space:nowrap}
@@ -295,9 +292,12 @@ const AVATAR_BUCKET = 'avatars_ops';
 // Map person names to photo filenames (lowercase, normalized)
 const AVATAR_MAP = {
   'afonso bento':     'afonso-bento.jpg',
+  'andre faria':      'andre-faria.jpg',
   'andré faria':      'andre-faria.jpg',
   'david pereira':    'david-pereira.png',
+  'joao m pires':     'joao-m-pires.jpg',
   'joao m. pires':    'joao-m-pires.jpg',
+  'joão m pires':     'joao-m-pires.jpg',
   'joão m. pires':    'joao-m-pires.jpg',
   'pedro sacramento': 'pedro-sacramento.jpg',
   'sara diniz':       'sara-diniz.jpg',
@@ -676,9 +676,8 @@ window.toggleProjBreakdown = id => {
   if (el) el.classList.toggle('open');
 };
 
-// ── RANKING ──
+// ── RANKING PODIUM ──
 function renderRanking(recs) {
-  // aggregate per person: hours + ok rate
   const ph = {}, pt = {}, pok = {};
   recs.forEach(r => {
     ph[r.person] = (ph[r.person]||0) + r.hours;
@@ -687,33 +686,38 @@ function renderRanking(recs) {
       if (s === 'ok') pok[r.person] = (pok[r.person]||0) + 1;
     });
   });
-  // include all known people (even 0h)
   people.forEach(p => { if (!ph[p]) ph[p] = 0; });
-  const ranked = Object.entries(ph).sort((a,b) => b[1]-a[1]);
-  const maxH = ranked[0]?.[1] || 1;
-  let html = '<div class="ranking-grid">';
-  ranked.forEach(([name, hours], i) => {
-    const total = pt[name]||0;
-    const ok = pok[name]||0;
-    const okRate = total ? Math.round(ok/total*100) : null;
-    const rankCls = i===0?' rank-1':i===1?' rank-2':i===2?' rank-3':'';
+  const ranked = Object.entries(ph).sort((a,b) => b[1]-a[1]).slice(0,3);
+  if (!ranked.length) { document.getElementById('dash-ranking').innerHTML = '<p style="font-size:13px;color:#9ca3af">Sem dados</p>'; return; }
+
+  function podiumAvatar(name, cls) {
     const url = avatarUrl(name);
-    const avatarHtml = url
-      ? `<img src="${url}" alt="${esc(name)}" class="rank-avatar" onerror="this.outerHTML='<div class=rank-avatar-init style=width:40px;height:40px;font-size:14px;font-weight:600>${esc(initials(name))}</div>'">`
-      : `<div class="rank-avatar-init">${esc(initials(name))}</div>`;
-    html += `<div class="rank-card${rankCls}">
-      <span class="rank-num">#${i+1}</span>
-      ${avatarHtml}
-      <div class="rank-info">
-        <div class="rank-name">${esc(name)}</div>
-        <div class="rank-hours">${hours.toFixed(1)}h</div>
-        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round(hours/maxH*100)}%"></div></div>
-        ${okRate !== null ? `<div class="rank-ok">${okRate}% OK</div>` : ''}
-      </div>
+    const ini = esc(initials(name));
+    if (url) return `<img src="${url}" alt="${esc(name)}" class="podium-avatar ${cls}" onerror="this.outerHTML='<div class=\\'podium-avatar-init ${cls}\\'>${ini}</div>'">`;
+    return `<div class="podium-avatar-init ${cls}">${ini}</div>`;
+  }
+
+  function podiumCol(rank, pos) {
+    if (!rank) return '<div class="podium-col" style="opacity:.3"><div style="width:60px;height:60px;border-radius:50%;background:#e5e7eb"></div></div>';
+    const [name, hours] = rank;
+    const total = pt[name]||0, ok = pok[name]||0;
+    const okRate = total ? Math.round(ok/total*100) : null;
+    const avatarCls = `podium-${pos}`;
+    return `<div class="podium-col podium-${pos}">
+      ${podiumAvatar(name, avatarCls)}
+      <div class="podium-name">${esc(name.split(' ')[0])}</div>
+      <div class="podium-hours">${hours.toFixed(1)}h</div>
+      ${okRate !== null ? `<div class="podium-ok">${okRate}% OK</div>` : ''}
+      <div class="podium-block podium-block-${pos}">${pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉'}</div>
     </div>`;
-  });
-  html += '</div>';
-  document.getElementById('dash-ranking').innerHTML = html;
+  }
+
+  // order: 2nd, 1st, 3rd for visual podium shape
+  document.getElementById('dash-ranking').innerHTML = `<div class="podium-wrap">
+    ${podiumCol(ranked[1]||null, 2)}
+    ${podiumCol(ranked[0], 1)}
+    ${podiumCol(ranked[2]||null, 3)}
+  </div>`;
 }
 
 window.renderDash = () => {
