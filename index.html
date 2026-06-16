@@ -70,12 +70,48 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;color:#111;mi
 .period-btn.active{background:#1D4E4F;color:#fff;border-color:#1D4E4F}
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
 @media(max-width:640px){.charts-grid{grid-template-columns:1fr}}
-.chart-wrap{background:#f9fafb;border-radius:8px;padding:16px}
+.chart-wrap{background:#f9fafb;border-radius:8px;padding:16px;position:relative}
 .chart-title{font-size:13px;font-weight:600;color:#374151;margin-bottom:12px}
 .chart-legend{margin-top:10px;display:flex;gap:12px;flex-wrap:wrap}
 .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#6b7280}
 .legend-dot{width:10px;height:10px;border-radius:2px}
-.proj-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f9fafb;border-radius:8px;margin-bottom:6px;font-size:13px}
+
+/* Project rows with hover breakdown */
+.proj-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f9fafb;border-radius:8px;margin-bottom:6px;font-size:13px;cursor:default;position:relative;transition:background .15s}
+.proj-row:hover{background:#f0fdf4}
+.proj-row-expand{display:none;padding:8px 12px 10px 12px;background:#f0fdf4;border-radius:0 0 8px 8px;margin-top:-6px;margin-bottom:6px;border:.5px solid #bbf7d0;border-top:none}
+.proj-row-expand.open{display:block}
+.proj-breakdown{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.pb-chip{display:flex;align-items:center;gap:6px;background:#fff;border:.5px solid #d1fae5;border-radius:999px;padding:3px 10px 3px 6px;font-size:12px;color:#065f46}
+.pb-avatar{width:20px;height:20px;border-radius:50%;object-fit:cover;border:.5px solid #bbf7d0}
+.pb-avatar-init{width:20px;height:20px;border-radius:50%;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#065f46}
+.proj-row-info{font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px}
+
+/* People ranking */
+.ranking-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:8px}
+.rank-card{background:#f9fafb;border-radius:10px;border:.5px solid #e5e7eb;padding:12px 14px;display:flex;align-items:center;gap:10px;position:relative;overflow:hidden}
+.rank-card.rank-1{background:#fffbeb;border-color:#fcd34d}
+.rank-card.rank-2{background:#f8fafc;border-color:#e2e8f0}
+.rank-card.rank-3{background:#fef6ee;border-color:#fed7aa}
+.rank-num{font-size:11px;font-weight:600;color:#9ca3af;position:absolute;top:8px;right:10px}
+.rank-1 .rank-num{color:#d97706}
+.rank-2 .rank-num{color:#64748b}
+.rank-3 .rank-num{color:#ea580c}
+.rank-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;flex-shrink:0}
+.rank-avatar-init{width:40px;height:40px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#6b7280;flex-shrink:0}
+.rank-info{min-width:0}
+.rank-name{font-size:13px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-hours{font-size:12px;color:#6b7280}
+.rank-bar-wrap{margin-top:4px;height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden}
+.rank-bar{height:4px;border-radius:2px;background:#1D4E4F;transition:width .4s}
+.rank-ok{font-size:11px;color:#16a34a;font-weight:500}
+
+/* Chart tooltip */
+.chart-tooltip{position:absolute;background:#1a1a1a;color:#fff;font-size:11px;padding:8px 10px;border-radius:8px;pointer-events:none;display:none;z-index:20;max-width:200px;line-height:1.6;white-space:nowrap}
+.tt-title{font-weight:600;margin-bottom:4px;font-size:12px}
+.tt-row{display:flex;align-items:center;gap:6px}
+.tt-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
 table{width:100%;font-size:13px;border-collapse:collapse}
 th{background:#f3f4f6;padding:8px 12px;text-align:left;font-weight:600;color:#374151;font-size:12px}
 td{padding:8px 12px;border-bottom:.5px solid #f0f0f0;color:#374151}
@@ -148,11 +184,25 @@ td{padding:8px 12px;border-bottom:.5px solid #f0f0f0;color:#374151}
       </div>
     </div>
     <div class="charts-grid">
-      <div class="chart-wrap"><div class="chart-title">Horas reportadas</div><svg id="chart-hours" viewBox="0 0 300 200" style="width:100%;height:auto"></svg><div class="chart-legend" id="legend-hours"></div></div>
-      <div class="chart-wrap"><div class="chart-title">OK Rate</div><svg id="chart-ok" viewBox="0 0 300 200" style="width:100%;height:auto"></svg><div class="chart-legend" id="legend-ok"></div></div>
+      <div class="chart-wrap">
+        <div class="chart-title">Horas reportadas</div>
+        <div style="position:relative;width:100%;height:180px"><canvas id="chart-hours" role="img" aria-label="Horas reportadas por período"></canvas></div>
+        <div class="chart-legend" id="legend-hours"></div>
+        <div class="chart-tooltip" id="tt-hours"></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">OK Rate</div>
+        <div style="position:relative;width:100%;height:180px"><canvas id="chart-ok" role="img" aria-label="Taxa de tarefas OK por período"></canvas></div>
+        <div class="chart-legend" id="legend-ok"></div>
+        <div class="chart-tooltip" id="tt-ok"></div>
+      </div>
     </div>
-    <h3>Horas por projeto</h3>
+
+    <h3 style="margin-bottom:12px">Horas por projeto</h3>
     <div id="dash-projects"></div>
+
+    <h3 style="margin:20px 0 12px">Ranking de pessoas</h3>
+    <div id="dash-ranking"></div>
   </div>
   <div class="dash-card">
     <h3>Stucks</h3>
@@ -233,12 +283,47 @@ td{padding:8px 12px;border-bottom:.5px solid #f0f0f0;color:#374151}
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL = 'https://fugydgbujpldycpodhac.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1Z3lkZ2J1anBsZHljcG9kaGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MTc0NjcsImV4cCI6MjA5NzE5MzQ2N30.53ef93SQ55a0vW46_qx-SIcdy7x4e9cVCZ0kCiz7Br4';
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const AVATAR_BUCKET = 'avatars_ops';
+// Map person names to photo filenames (lowercase, normalized)
+const AVATAR_MAP = {
+  'afonso bento':     'afonso-bento.jpg',
+  'andré faria':      'andre-faria.jpg',
+  'david pereira':    'david-pereira.png',
+  'joao m. pires':    'joao-m-pires.jpg',
+  'joão m. pires':    'joao-m-pires.jpg',
+  'pedro sacramento': 'pedro-sacramento.jpg',
+  'sara diniz':       'sara-diniz.jpg',
+  'vasco laranjinha': 'vasco-laranjinha.jpg',
+};
+function avatarUrl(name) {
+  const key = name.toLowerCase().normalize('NFC');
+  const file = AVATAR_MAP[key];
+  if (!file) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/${AVATAR_BUCKET}/${file}`;
+}
+function initials(name) {
+  return name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+}
+function avatarTag(name, size=20, extraStyle='') {
+  const url = avatarUrl(name);
+  if (url) return `<img src="${url}" alt="${esc(name)}" class="pb-avatar" style="width:${size}px;height:${size}px${extraStyle?';'+extraStyle:''}" onerror="this.replaceWith(mkInit('${esc(name)}',${size}))">`;
+  return `<div class="pb-avatar-init" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.4)}px${extraStyle?';'+extraStyle:''}">${esc(initials(name))}</div>`;
+}
+window.mkInit = function(name, size) {
+  const d = document.createElement('div');
+  d.className = 'pb-avatar-init';
+  d.style.cssText = `width:${size}px;height:${size}px;font-size:${Math.round(size*0.4)}px`;
+  d.textContent = initials(name);
+  return d;
+};
 
 // ── STATE ──
 let records = [], people = [], projects = [];
@@ -249,19 +334,17 @@ let dashWeek = mondayOf(new Date());
 let dashMonth = fmtYM(new Date());
 let dashYear = new Date().getFullYear();
 let pendingStuck = null, pendingResolve = null, pendingDelete = null, manageType = null;
+let chartHours = null, chartOk = null;
 
 // ── DATE UTILS ──
-// Always work with local dates, never UTC
 function mondayOf(d) {
-  // accepts Date or 'YYYY-MM-DD' string
   const dt = typeof d === 'string' ? parseLocalDate(d) : new Date(d);
-  const day = dt.getDay(); // 0=Sun,1=Mon,...
+  const day = dt.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   dt.setDate(dt.getDate() + diff);
   return dt;
 }
 function parseLocalDate(s) {
-  // 'YYYY-MM-DD' → local Date (avoids UTC shift)
   const [y, m, d] = s.split('-').map(Number);
   return new Date(y, m - 1, d);
 }
@@ -292,7 +375,6 @@ function weekLabel(d) {
 async function init() {
   await Promise.all([loadLookups(), loadRecords()]);
   populatePersonSel();
-  // set default form week to current monday
   document.getElementById('f-week').value = fmtDate(mondayOf(new Date()));
   render();
   renderDash();
@@ -311,7 +393,7 @@ async function loadRecords() {
     id: r.id,
     person: r.person,
     project: r.project,
-    week: r.week, // keep as 'YYYY-MM-DD' string
+    week: r.week,
     hours: parseFloat(r.hours),
     tasks: r.tasks || [],
     taskStatus: r.task_status || [],
@@ -337,7 +419,6 @@ function populatePersonSel() {
   const cur = sel.value;
   sel.innerHTML = people.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
   if (cur && people.includes(cur)) sel.value = cur;
-  // attach change listener properly
   sel.onchange = () => render();
 }
 
@@ -367,19 +448,15 @@ function render() {
     const wDate = new Date(selectedWeek);
     wDate.setDate(wDate.getDate() - (1 - w) * 7);
     const wMon  = mondayOf(wDate);
-    const wStr  = fmtDate(wMon); // 'YYYY-MM-DD' of that monday
-
-    // match records whose week monday == wStr
+    const wStr  = fmtDate(wMon);
     const recs = records.filter(r => {
       const recMon = fmtDate(mondayOf(parseLocalDate(r.week)));
       return r.person === person && recMon === wStr;
     });
-
     const total = recs.reduce((s, r) => s + r.hours, 0);
     const pct   = (total / 40 * 100).toFixed(1);
     const hCls  = total >= 39 ? 'hours-green' : total >= 35 ? 'hours-yellow' : 'hours-red';
     const over  = total > 40 ? `<span style="color:#dc2626;font-size:11px;margin-left:6px">(+${(total-40).toFixed(1)}h)</span>` : '';
-
     html += `<div class="week-card"><div class="week-header"><div>
       <div class="week-title">${weekLabel(wMon)}</div>
       <span class="hours-badge ${hCls}">${total.toFixed(1)}h (${pct}%)</span>${over}
@@ -388,7 +465,6 @@ function render() {
       <button class="bulk-btn" style="background:#fee2e2;color:#991b1b" onclick="bulk('${esc(person)}','${wStr}','nok')">✗</button>
       <button class="bulk-btn" style="background:#fef9c3;color:#92400e" onclick="bulk('${esc(person)}','${wStr}','stuck')">!</button>
     </div></div>`;
-
     if (!recs.length) {
       html += `<div class="empty-week">Sem entradas para esta semana</div>`;
     } else {
@@ -503,10 +579,7 @@ window.saveEntry = async (close) => {
   const hours   = parseFloat(document.getElementById('f-hours').value);
   const desc    = document.getElementById('f-desc').value.trim();
   if (!person || !project || !weekRaw || !hours || !desc) { alert('Preenche todos os campos.'); return; }
-  // always store the monday of the selected week
   const week = fmtDate(mondayOf(parseLocalDate(weekRaw)));
-  // validate: must be a monday (or close enough after correction)
-
   const tasks = desc.split('\n').map(t => t.trim()).filter(t => t);
   setLoading(true);
   await sb.from('records').insert({ person, project, week, hours, tasks, task_status: tasks.map(() => 'pending'), task_reasons: tasks.map(() => '') });
@@ -555,18 +628,28 @@ window.shiftDash = n => {
   if (dashPeriod === 'month') { const [y,m] = dashMonth.split('-').map(Number); const nm = m+n; dashMonth = nm > 12 ? `${y+1}-01` : nm < 1 ? `${y-1}-12` : `${y}-${String(nm).padStart(2,'0')}`; }
   renderDash();
 };
+
 function getDashRecs() {
   if (dashPeriod === 'week')  return records.filter(r => fmtDate(mondayOf(parseLocalDate(r.week))) === fmtDate(mondayOf(dashWeek)));
   if (dashPeriod === 'month') return records.filter(r => r.week.startsWith(dashMonth));
   return records.filter(r => r.week.startsWith(String(dashYear)));
 }
+
 function getChartPeriods() {
   if (dashPeriod === 'week') {
     const wks = [...new Set(records.map(r => fmtDate(mondayOf(parseLocalDate(r.week)))))].sort();
     return wks.map(w => {
       const rs = records.filter(r => fmtDate(mondayOf(parseLocalDate(r.week))) === w);
       const ts = rs.flatMap(r => r.taskStatus);
-      return { label: `W${weekNum(parseLocalDate(w))}`, hours: rs.reduce((s,r) => s+r.hours, 0), ok: ts.length ? ts.filter(s => s==='ok').length/ts.length*100 : 0 };
+      // per-person hours for tooltip
+      const byPerson = {};
+      rs.forEach(r => { byPerson[r.person] = (byPerson[r.person]||0) + r.hours; });
+      return {
+        label: `W${weekNum(parseLocalDate(w))}`,
+        hours: rs.reduce((s,r) => s+r.hours, 0),
+        ok: ts.length ? ts.filter(s => s==='ok').length/ts.length*100 : 0,
+        byPerson
+      };
     });
   }
   if (dashPeriod === 'month') {
@@ -575,25 +658,192 @@ function getChartPeriods() {
     return mns.map(m => {
       const rs = records.filter(r => r.week.startsWith(m));
       const ts = rs.flatMap(r => r.taskStatus);
-      return { label: MN[parseInt(m.split('-')[1])-1], hours: rs.reduce((s,r) => s+r.hours, 0), ok: ts.length ? ts.filter(s => s==='ok').length/ts.length*100 : 0 };
+      const byPerson = {};
+      rs.forEach(r => { byPerson[r.person] = (byPerson[r.person]||0) + r.hours; });
+      return { label: MN[parseInt(m.split('-')[1])-1], hours: rs.reduce((s,r) => s+r.hours, 0), ok: ts.length ? ts.filter(s => s==='ok').length/ts.length*100 : 0, byPerson };
     });
   }
   const rs = records.filter(r => r.week.startsWith(String(dashYear)));
   const ts = rs.flatMap(r => r.taskStatus);
-  return [{ label: String(dashYear), hours: rs.reduce((s,r) => s+r.hours, 0), ok: ts.length ? ts.filter(s => s==='ok').length/ts.length*100 : 0 }];
+  const byPerson = {};
+  rs.forEach(r => { byPerson[r.person] = (byPerson[r.person]||0) + r.hours; });
+  return [{ label: String(dashYear), hours: rs.reduce((s,r) => s+r.hours, 0), ok: ts.length ? ts.filter(s => s==='ok').length/ts.length*100 : 0, byPerson }];
+}
+
+// ── PROJECT BREAKDOWN TOGGLE ──
+window.toggleProjBreakdown = id => {
+  const el = document.getElementById(`pb-${id}`);
+  if (el) el.classList.toggle('open');
+};
+
+// ── RANKING ──
+function renderRanking(recs) {
+  // aggregate per person: hours + ok rate
+  const ph = {}, pt = {}, pok = {};
+  recs.forEach(r => {
+    ph[r.person] = (ph[r.person]||0) + r.hours;
+    r.taskStatus.forEach(s => {
+      pt[r.person] = (pt[r.person]||0) + 1;
+      if (s === 'ok') pok[r.person] = (pok[r.person]||0) + 1;
+    });
+  });
+  // include all known people (even 0h)
+  people.forEach(p => { if (!ph[p]) ph[p] = 0; });
+  const ranked = Object.entries(ph).sort((a,b) => b[1]-a[1]);
+  const maxH = ranked[0]?.[1] || 1;
+  let html = '<div class="ranking-grid">';
+  ranked.forEach(([name, hours], i) => {
+    const total = pt[name]||0;
+    const ok = pok[name]||0;
+    const okRate = total ? Math.round(ok/total*100) : null;
+    const rankCls = i===0?' rank-1':i===1?' rank-2':i===2?' rank-3':'';
+    const url = avatarUrl(name);
+    const avatarHtml = url
+      ? `<img src="${url}" alt="${esc(name)}" class="rank-avatar" onerror="this.outerHTML='<div class=rank-avatar-init style=width:40px;height:40px;font-size:14px;font-weight:600>${esc(initials(name))}</div>'">`
+      : `<div class="rank-avatar-init">${esc(initials(name))}</div>`;
+    html += `<div class="rank-card${rankCls}">
+      <span class="rank-num">#${i+1}</span>
+      ${avatarHtml}
+      <div class="rank-info">
+        <div class="rank-name">${esc(name)}</div>
+        <div class="rank-hours">${hours.toFixed(1)}h</div>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round(hours/maxH*100)}%"></div></div>
+        ${okRate !== null ? `<div class="rank-ok">${okRate}% OK</div>` : ''}
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('dash-ranking').innerHTML = html;
 }
 
 window.renderDash = () => {
   const labels = { week: `Semana de ${fmtDate(mondayOf(dashWeek))}`, month: dashMonth, year: String(dashYear) };
   document.getElementById('dash-period-label').textContent = labels[dashPeriod];
   const periods = getChartPeriods(), nP = people.length;
-  drawChart('chart-hours', periods, 'hours', v => `${Math.round(v)}h`, Math.max(...periods.map(p=>p.hours), 40*nP), [{val:35*nP,col:'#ef4444'},{val:39*nP,col:'#eab308'}], v => v>=39*nP?'#22c55e':v>=35*nP?'#eab308':'#ef4444');
+
+  // ── Chart: Horas ──
+  const hoursColors = periods.map(p => p.hours >= 39*nP ? '#22c55e' : p.hours >= 35*nP ? '#eab308' : '#ef4444');
+  const hoursData = { labels: periods.map(p=>p.label), datasets: [{ data: periods.map(p=>p.hours), backgroundColor: hoursColors, borderRadius: 4, borderSkipped: false }] };
+  if (chartHours) chartHours.destroy();
+  chartHours = new Chart(document.getElementById('chart-hours'), {
+    type: 'bar', data: hoursData,
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, callback: v => `${v}h` }, suggestedMax: Math.max(...periods.map(p=>p.hours), 40*nP)*1.1 }
+      },
+      onHover: (e, els) => {
+        const tt = document.getElementById('tt-hours');
+        if (!els.length) { tt.style.display='none'; return; }
+        const idx = els[0].index;
+        const p = periods[idx];
+        const target40 = 40 * nP;
+        // find people below 40h
+        const under = Object.entries(p.byPerson||{}).filter(([,h]) => h < 40).sort((a,b) => a[1]-b[1]);
+        let html = `<div class="tt-title">${p.label} — ${p.hours.toFixed(1)}h</div>`;
+        if (under.length) {
+          html += `<div style="font-size:10px;color:#fca5a5;margin-bottom:4px">Abaixo de 40h:</div>`;
+          under.forEach(([name, h]) => {
+            html += `<div class="tt-row"><div class="tt-dot" style="background:#ef4444"></div>${esc(name)}: ${h.toFixed(1)}h</div>`;
+          });
+        } else {
+          html += `<div style="color:#bbf7d0;font-size:11px">Toda a equipa ≥ 40h ✓</div>`;
+        }
+        tt.innerHTML = html;
+        tt.style.display = 'block';
+        // position relative to canvas
+        const rect = document.getElementById('chart-hours').getBoundingClientRect();
+        const wrapRect = tt.closest('.chart-wrap').getBoundingClientRect();
+        let x = e.native.clientX - wrapRect.left + 10;
+        let y = e.native.clientY - wrapRect.top - 10;
+        if (x + 200 > wrapRect.width) x = x - 200 - 20;
+        tt.style.left = x + 'px';
+        tt.style.top  = y + 'px';
+      }
+    }
+  });
   document.getElementById('legend-hours').innerHTML = `<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>< ${35*nP}h</div><div class="legend-item"><div class="legend-dot" style="background:#eab308"></div>${35*nP}–${39*nP}h</div><div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>≥ ${39*nP}h</div>`;
-  drawChart('chart-ok', periods, 'ok', v => `${Math.round(v)}%`, 100, [{val:80,col:'#eab308'},{val:90,col:'#22c55e'}], v => v>=90?'#22c55e':v>=80?'#eab308':'#ef4444');
+
+  // ── Chart: OK Rate ──
+  const okColors = periods.map(p => p.ok >= 90 ? '#22c55e' : p.ok >= 80 ? '#eab308' : '#ef4444');
+  const okData = { labels: periods.map(p=>p.label), datasets: [{ data: periods.map(p=>parseFloat(p.ok.toFixed(1))), backgroundColor: okColors, borderRadius: 4, borderSkipped: false }] };
+  if (chartOk) chartOk.destroy();
+  chartOk = new Chart(document.getElementById('chart-ok'), {
+    type: 'bar', data: okData,
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { grid: { color: '#f0f0f0' }, max: 100, ticks: { font: { size: 10 }, callback: v => `${v}%` } }
+      },
+      onHover: (e, els) => {
+        const tt = document.getElementById('tt-ok');
+        if (!els.length) { tt.style.display='none'; return; }
+        const idx = els[0].index;
+        const p = periods[idx];
+        // per-person ok rate
+        const byP = {};
+        let recs;
+        if (dashPeriod === 'week') {
+          const wks = [...new Set(records.map(r => fmtDate(mondayOf(parseLocalDate(r.week)))))].sort();
+          recs = records.filter(r => fmtDate(mondayOf(parseLocalDate(r.week))) === wks[idx]);
+        } else {
+          recs = getDashRecs();
+        }
+        recs.forEach(r => {
+          if (!byP[r.person]) byP[r.person] = { ok:0, total:0 };
+          r.taskStatus.forEach(s => { byP[r.person].total++; if(s==='ok') byP[r.person].ok++; });
+        });
+        let html = `<div class="tt-title">${p.label} — ${p.ok.toFixed(1)}% OK</div>`;
+        Object.entries(byP).sort((a,b) => b[1].ok/Math.max(b[1].total,1) - a[1].ok/Math.max(a[1].total,1)).forEach(([name, d]) => {
+          const r = d.total ? Math.round(d.ok/d.total*100) : 0;
+          const col = r >= 90 ? '#22c55e' : r >= 80 ? '#eab308' : '#ef4444';
+          html += `<div class="tt-row"><div class="tt-dot" style="background:${col}"></div>${esc(name)}: ${r}%</div>`;
+        });
+        tt.innerHTML = html;
+        tt.style.display = 'block';
+        const wrapRect = tt.closest('.chart-wrap').getBoundingClientRect();
+        let x = e.native.clientX - wrapRect.left + 10;
+        let y = e.native.clientY - wrapRect.top - 10;
+        if (x + 200 > wrapRect.width) x = x - 200 - 20;
+        tt.style.left = x + 'px';
+        tt.style.top  = y + 'px';
+      }
+    }
+  });
   document.getElementById('legend-ok').innerHTML = `<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>< 80%</div><div class="legend-item"><div class="legend-dot" style="background:#eab308"></div>80–90%</div><div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>≥ 90%</div>`;
-  const recs = getDashRecs(), ph = {}, bd = {};
-  recs.forEach(r => { ph[r.project]=(ph[r.project]||0)+r.hours; (bd[r.project]=bd[r.project]||[]).push(`${r.person}: ${r.hours}h`); });
-  document.getElementById('dash-projects').innerHTML = Object.entries(ph).sort((a,b)=>b[1]-a[1]).map(([p,h]) => `<div class="proj-row"><span>${esc(p)}</span><strong>${h.toFixed(1)}h</strong></div>`).join('') || '<p style="font-size:13px;color:#9ca3af">Sem dados</p>';
+
+  // ── Projects with breakdown ──
+  const recs = getDashRecs();
+  const ph = {};
+  recs.forEach(r => { ph[r.project] = ph[r.project]||{}; ph[r.project][r.person] = (ph[r.project][r.person]||0) + r.hours; });
+  const projEntries = Object.entries(ph).map(([p, byP]) => ({ project:p, total: Object.values(byP).reduce((a,b)=>a+b,0), byP })).sort((a,b)=>b.total-a.total);
+  document.getElementById('dash-projects').innerHTML = projEntries.map((e, i) => {
+    const chips = Object.entries(e.byP).sort((a,b)=>b[1]-a[1]).map(([name, h]) => {
+      const avHtml = avatarTag(name, 18);
+      return `<div class="pb-chip">${avHtml}<span>${esc(name)}: ${h.toFixed(1)}h</span></div>`;
+    }).join('');
+    return `
+      <div class="proj-row" onclick="toggleProjBreakdown(${i})">
+        <span>${esc(e.project)}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <strong>${e.total.toFixed(1)}h</strong>
+          <span class="proj-row-info" style="font-size:11px;color:#9ca3af">▸ ${Object.keys(e.byP).length} pessoa(s)</span>
+        </div>
+      </div>
+      <div class="proj-row-expand" id="pb-${i}">
+        <div style="font-size:11px;font-weight:600;color:#6b7280;margin-bottom:6px">Breakdown por pessoa</div>
+        <div class="proj-breakdown">${chips}</div>
+      </div>`;
+  }).join('') || '<p style="font-size:13px;color:#9ca3af">Sem dados</p>';
+
+  // ── Ranking ──
+  renderRanking(recs);
+
+  // ── Stucks ──
   const showRes = document.getElementById('show-resolved').checked;
   const stucks = records.flatMap(r => (r.taskStatus||[]).map((st,ti) => ({ id:r.id, ti, st, person:r.person, project:r.project, week:r.week, reason:r.taskReasons[ti]||'' }))).filter(s => s.st==='stuck' || (showRes && s.reason));
   document.getElementById('stucks-body').innerHTML = stucks.length === 0
@@ -612,28 +862,6 @@ window.confirmResolve = async () => {
   await sb.from('records').update({ task_status: ts, task_reasons: tr }).eq('id', id);
   await loadRecords(); setLoading(false); renderDash(); showToast('Stuck resolvido');
 };
-
-// ── SVG CHART ──
-function drawChart(svgId, periods, key, fmt, maxVal, thresholds, colorFn) {
-  const W=300,H=200,pL=42,pR=10,pT=16,pB=36,iW=W-pL-pR,iH=H-pT-pB;
-  const steps=5, sv=Math.ceil(maxVal/steps)||1, aMax=sv*steps||1;
-  const yPx = v => pT + iH - (v/aMax)*iH;
-  const slW = periods.length > 0 ? iW/periods.length : iW;
-  const bW  = Math.min(slW*.55, 36);
-  let out = '';
-  for (let i=0;i<=steps;i++) { const v=sv*i,y=yPx(v); out+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="#e5e7eb" stroke-width="1"/><text x="${pL-5}" y="${y+4}" font-size="9" fill="#9ca3af" text-anchor="end">${fmt(v)}</text>`; }
-  thresholds.forEach(t => { const y=yPx(t.val); out+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="${t.col}" stroke-width="1.5" stroke-dasharray="5,3"/>`; });
-  out += `<line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT+iH}" stroke="#d1d5db" stroke-width="1"/><line x1="${pL}" y1="${pT+iH}" x2="${W-pR}" y2="${pT+iH}" stroke="#d1d5db" stroke-width="1"/>`;
-  periods.forEach((p,i) => {
-    const v=p[key], bX=pL+slW*i+(slW-bW)/2, bY=yPx(v), bH=Math.max((pT+iH)-bY,0), fill=colorFn(v);
-    out += `<rect x="${bX}" y="${bY}" width="${bW}" height="${bH}" fill="${fill}" rx="3"/>`;
-    const lbl=fmt(v);
-    if (bH>18) out+=`<text x="${bX+bW/2}" y="${bY+13}" font-size="9" fill="#fff" font-weight="600" text-anchor="middle">${lbl}</text>`;
-    else       out+=`<text x="${bX+bW/2}" y="${bY-4}" font-size="9" fill="#374151" font-weight="600" text-anchor="middle">${lbl}</text>`;
-    out+=`<text x="${bX+bW/2}" y="${pT+iH+14}" font-size="9" fill="#6b7280" text-anchor="middle">${p.label}</text>`;
-  });
-  document.getElementById(svgId).innerHTML = out;
-}
 
 window.closeModal = closeModal;
 init();
